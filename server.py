@@ -15,7 +15,7 @@ logger = logging.getLogger(__file__)
 async def archive(request):
     photos_dir = request.app['photos_dir']
     throttle_tick_time = request.app['throttle_tick_time']
-
+    
     archive_hash = request.match_info['archive_hash']
 
     if not os.path.exists(os.path.join(photos_dir, archive_hash)):
@@ -47,9 +47,17 @@ async def archive(request):
                 break
         
         await response.write_eof()
-    finally:
-        process.kill()
+        logger.info(f'Download complete.')
+    except asyncio.CancelledError:
         logger.info(f'Download was interrupted.')
+    finally:
+        try:
+            process.kill()
+            logger.info(f'Killing zip subprocess.')
+            await process.communicate()
+        except ProcessLookupError:
+            logger.info(f'Zip subprocess was completed before termination signal.')
+
 
 
 async def handle_index_page(request):
@@ -76,4 +84,5 @@ if __name__ == '__main__':
         web.get('/', handle_index_page),
         web.get('/archive/{archive_hash}/', archive),
     ])
+    
     web.run_app(app)
