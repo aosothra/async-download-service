@@ -9,13 +9,12 @@ from argparse import ArgumentParser
 from asyncio import create_subprocess_exec, subprocess
 
 
-throttle_tick_time = 0
-photos_dir = 'test_photos'
 logger = logging.getLogger(__file__)
 
 
 async def archive(request):
-    global throttle_tick_time, photos_dir
+    photos_dir = request.app['photos_dir']
+    throttle_tick_time = request.app['throttle_tick_time']
 
     archive_hash = request.match_info['archive_hash']
 
@@ -69,10 +68,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.ERROR)
     if args.verbose:
         logger.setLevel(logging.INFO)
-    throttle_tick_time = args.throttle_tick
-    photos_dir = args.photo_dir
 
     app = web.Application()
+    app['throttle_tick_time'] = args.throttle_tick
+    app['photos_dir'] = args.photo_dir
     app.add_routes([
         web.get('/', handle_index_page),
         web.get('/archive/{archive_hash}/', archive),
