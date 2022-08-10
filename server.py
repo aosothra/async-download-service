@@ -36,13 +36,13 @@ async def archive(request):
 
     try:
         while True:
-            data = await process.stdout.read(512000)
-            logger.info(f'Sending archive chunk {archive_hash}({len(data)})')
+            chunk = await process.stdout.read(512000)
+            logger.info(f'Sending archive chunk {archive_hash}({len(chunk)})')
 
             if throttle_tick_time:
                 await asyncio.sleep(throttle_tick_time)
 
-            await response.write(data)
+            await response.write(chunk)
             if process.stdout.at_eof():
                 break
         
