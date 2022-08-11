@@ -50,6 +50,7 @@ async def archive(request):
         logger.info(f'Download complete.')
     except asyncio.CancelledError:
         logger.info(f'Download was interrupted.')
+        raise
     finally:
         try:
             process.kill()
